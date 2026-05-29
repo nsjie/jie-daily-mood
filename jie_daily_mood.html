@@ -966,10 +966,6 @@ function refreshOverview(){
     if(data.energy){energySum+=parseInt(data.energy)||0;energyCount++;}
   });
 
-  let sexDays=0,sexTotal=0;
-  dates.forEach(dk=>{const d=all[dk];if(d.sex){sexDays++;sexTotal+=parseInt(d.sexCount)||1;}});
-  const avgSex=totalDays?((sexDays/totalDays*100).toFixed(0)+'% ('+sexDays+'天)'):'-';
-
   const avgMood=totalMoods?(moodSum/totalMoods).toFixed(1):'-';
   const avgSleep=sleepCount?(sleepSum/sleepCount).toFixed(1):'-';
   const avgEnergy=energyCount?(energySum/energyCount).toFixed(1):'-';
@@ -978,7 +974,6 @@ function refreshOverview(){
   document.getElementById('overviewStats').innerHTML=`
     <div class="proj-card"><div class="amount" style="color:var(--green);">${totalDays}</div><div class="period">📅 记录天数</div></div>
     <div class="proj-card"><div class="amount" style="color:var(--pink);">${avgMood}</div><div class="period">😊 平均情绪</div></div>
-    <div class="proj-card"><div class="amount" style="color:var(--red);font-size:1.3rem;">${avgSex}</div><div class="period">❤️ 爱爱频率</div></div>
     <div class="proj-card"><div class="amount" style="color:var(--blue);">${avgSleep}</div><div class="period">⭐ 平均睡眠</div></div>
     <div class="proj-card"><div class="amount" style="color:var(--orange);">${avgEnergy}</div><div class="period">⚡ 平均精力</div></div>
     <div class="proj-card"><div class="amount" style="font-size:0.75rem;color:var(--purple);">${topMoods||'暂无'}</div><div class="period">🔥 常见情绪</div></div>`;
@@ -1051,7 +1046,7 @@ function refreshOverview(){
     // Basic info
     const info=[data.weather,data.sleep?'⭐'+data.sleep:'',data.energy?'⚡'+data.energy:'',data.weight?data.weight+'kg':'',
       data.breakfast?data.breakfast:'',data.water?'💧'+data.water+'杯':'',data.coffee==='有'?'☕':'',data.alcohol==='有'?'🍺':'',
-      data.exercise?data.exercise+'('+data.exerciseMin+'min)':'',data.bowel?data.bowel:'',data.sex?'❤️爱爱'+data.sexCount+'次'+data.sexMeasure:'',data.diy?'🔹DIY':''].filter(Boolean);
+      data.exercise?data.exercise+'('+data.exerciseMin+'min)':'',data.bowel?data.bowel:''].filter(Boolean);
     if(info.length){
       detailHTML+=`<div style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px;font-size:0.75rem;color:var(--text2);">📌 ${info.join(' · ')}</div>`;
     }
@@ -1069,12 +1064,12 @@ function refreshOverview(){
         <span style="font-size:0.75rem;color:var(--text2);">${uniqueMoods.slice(0,4).join(' ')}${uniqueMoods.length>4?' +'+(uniqueMoods.length-4):''} ▾</span>
       </div>
       <div style="font-size:0.72rem;color:var(--text2);margin-top:4px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-        ${data.sex?'<span style="color:var(--pink);">❤️ 爱爱'+data.sexCount+'次 '+data.sexMeasure+'</span>':''}
-        ${data.diy?'<span style="color:var(--purple);">🔹 DIY</span>':''}
+        
+        
         ${data.weather||''} ${data.sleep?'⭐'+data.sleep:''} ${data.energy?'⚡'+data.energy:''}
-        <span style="color:var(--blue);cursor:pointer;margin-left:auto;" data-expand="${cardIdx}" style="color:var(--blue);cursor:pointer;margin-left:auto;">▼ 点击展开/收起</span>
+        <span data-expand="${cardIdx}" style="color:var(--blue);cursor:pointer;margin-left:auto;">▼ 点击展开/收起</span>
       </div>
-      <div style="font-size:0.72rem;color:var(--text2);margin-top:4px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">${data.sex?'<span style="color:var(--pink);">爱爱'+data.sexCount+'次 '+data.sexMeasure+'</span>':''}${data.diy?'<span style="color:var(--purple);">DIY</span>':''}${data.weather||''}${data.sleep?'星'+data.sleep:''}${data.energy?'⚡'+data.energy:''}<span style="color:var(--blue);cursor:pointer;margin-left:auto;" data-expand="${cardIdx}" style="color:var(--blue);cursor:pointer;margin-left:auto;">▼ 点击展开/收起</span></div>
+      <div style="font-size:0.72rem;color:var(--text2);margin-top:4px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">${data.weather||''}${data.sleep?'⭐'+data.sleep:''}${data.energy?'⚡'+data.energy:''}<span data-expand="${cardIdx}" style="color:var(--blue);cursor:pointer;margin-left:auto;">▼ 点击展开/收起</span></div>
       <div id="detail_${cardIdx}" style="display:none;margin-top:10px;">${detailHTML}</div>
     </div>`;
   }).join('');
@@ -1157,14 +1152,6 @@ document.addEventListener('keydown',function(e){
     
   }
 });
-
-// Add export button to header
-const exportBtn=document.createElement('button');
-exportBtn.className='btn btn-sm btn-secondary';
-exportBtn.textContent='📤 导出';
-exportBtn.style.marginLeft='8px';
-exportBtn.onclick=exportData;
-document.querySelector('header').appendChild(exportBtn);
 
 // ==================== SERVICE WORKER ====================
 if('serviceWorker'in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
