@@ -877,23 +877,37 @@ function refreshOverview(){
     <div class="proj-card"><div class="amount" style="color:var(--orange);">${avgEnergy}</div><div class="period">⚡ 平均精力</div></div>
     <div class="proj-card"><div class="amount" style="font-size:0.75rem;color:var(--purple);">${topMoods||'暂无'}</div><div class="period">🔥 常见情绪</div></div>`;
 
-  // History list
-  if(dates.length===0){
-    document.getElementById('overviewList').innerHTML='<p style="color:var(--text2);text-align:center;">暂无记录，开始你的第一条情绪记录吧 🐔</p>';
-    return;
-  }
-  document.getElementById('overviewList').innerHTML=dates.map(dk=>{
+  // History list - show last 14 days with missing date indicators
+  const last14=[];
+  for(let i=0;i<14;i++){const d=new Date();d.setDate(d.getDate()-i);last14.push(d.toISOString().slice(0,10));}
+  
+  document.getElementById('overviewList').innerHTML=last14.map(dk=>{
     const data=all[dk];
     const dateLabel=new Date(dk+'T00:00:00').toLocaleDateString('zh-CN',{month:'long',day:'numeric',weekday:'short'});
     const isToday=dk===today;
-    // Collect all moods for the day
-    const moods=[];
+    
+    // Check if this day has meaningful content
+    let hasContent=false;
     ['morning','noon','afternoon','evening'].forEach(s=>{
       (Array.isArray(data[s])?data[s]:[]).forEach(e=>{
-        (e.moodItems||[]).forEach(mi=>{if(mi.mood)moods.push(mi.mood);});
-        (e.moods||[]).forEach(m=>moods.push(m));
+        if(e.event||(e.moodItems&&e.moodItems.length)||(e.moods&&e.moods.length))hasContent=true;
       });
     });
+    if(!hasContent && !data.weather) hasContent=false;
+    
+    if(!data||!hasContent){
+      // Missing data - show light indicator
+      return `<div style="background:var(--card);border:1px dashed var(--border);border-radius:10px;padding:10px;margin-bottom:6px;cursor:pointer;opacity:0.7;" onclick="loadDay('${dk}');fillForm();document.getElementById('tabs').querySelector('[data-tab=checkin]').click();window.scrollTo(0,0);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-weight:500;color:var(--text2);">${isToday?'📌 ':''}${dateLabel}</span>
+          <span style="font-size:0.75rem;color:var(--orange);">⚠️ 未记录 - 点击补记</span>
+        </div>
+      </div>`;
+    }
+    
+    // Has data - show full card
+    const moods=[];
+    ['morning','noon','afternoon','evening'].forEach(s=>{(Array.isArray(data[s])?data[s]:[]).forEach(e=>{(e.moodItems||[]).forEach(mi=>{if(mi.mood)moods.push(mi.mood);});(e.moods||[]).forEach(m=>moods.push(m));});});
     const uniqueMoods=[...new Set(moods)];
     const hasReview=data.review&&(data.review.q1||data.review.q2||data.review.q3||data.review.q4);
     const hasJoys=data.joys&&data.joys.filter(j=>j).length>0;
